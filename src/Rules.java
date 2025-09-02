@@ -3,6 +3,8 @@ import java.util.List;
 
 public class Rules {
 
+    public static int counter = 0;
+
     public static class PiecePosition {
         int row, col;
         Piece piece;
@@ -66,7 +68,7 @@ public class Rules {
 
     // DRAW Checkers
     public static boolean isDraw(ChessBoard game, String color) {
-        return isStalemate(game, color) || isInsufficientMaterial(game.getPieces());
+        return isStalemate(game, color) || isInsufficientMaterial(game.getPieces()) || FiftyRules();
     }
 
     public static boolean isStalemate(ChessBoard game, String color) {
@@ -124,6 +126,10 @@ public class Rules {
         }
 
         return false;
+    }
+
+    public static boolean FiftyRules() {
+        return counter >= 100; // 50 full moves = 100 moves for each side
     }
 
     // Is the Move Valid or not

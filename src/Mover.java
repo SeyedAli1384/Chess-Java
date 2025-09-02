@@ -60,6 +60,16 @@ class Mover implements EventHandler<ActionEvent> {
     }
 
     private void movePiece(Piece piece, Button targetButton, int toRow, int toCol, int fromRow, int fromCol) {
+
+        Piece targetPiece = game.getPieces()[toRow][toCol]; // check if capture happens
+
+        // If capture or pawn move → reset counter
+        if (targetPiece != null || piece instanceof Pawn) {
+            Rules.counter = 0;
+        } else {
+            Rules.counter++;
+        }
+
         // Handle castling
         if (piece instanceof King && Math.abs(toCol - fromCol) == 2) {
             int row = fromRow;
