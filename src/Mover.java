@@ -31,7 +31,8 @@ class Mover implements EventHandler<ActionEvent> {
         Piece piece = pieces[row][col];
 
         if (piece == null || !piece.color.equals(game.getCurrentTurn())) {
-            VisualEffect.flashRed(button);
+            Effects.flashRed(button);
+            Effects.SoundEffect.playError();
             return;
         }
 
@@ -46,14 +47,23 @@ class Mover implements EventHandler<ActionEvent> {
 
         if (piece != null && piece.isValidMove(srcRow, srcCol, targetRow, targetCol, pieces)) {
             if (!Rules.isValidMove(game, srcRow, srcCol, targetRow, targetCol)) {
-                VisualEffect.flashRed(targetButton);
+                Effects.flashRed(targetButton);
+                Effects.SoundEffect.playError();
             } else {
+                Piece targetPiece = game.getPieces()[targetRow][targetCol];
                 movePiece(piece, targetButton, targetRow, targetCol, srcRow, srcCol);
+                if(targetPiece != null){
+                    Effects.SoundEffect.playCapture();
+                }
+                else{
+                    Effects.SoundEffect.playMove();
+                }
                 checkStatus(piece);
                 System.out.println(getMoveNotation(piece, targetRow, targetCol));
             }
         } else {
-            VisualEffect.flashRed(targetButton);
+            Effects.flashRed(targetButton);
+            Effects.SoundEffect.playError();
         }
 
         resetPreviousSelection();
@@ -133,13 +143,16 @@ class Mover implements EventHandler<ActionEvent> {
             int[] kingPos = Rules.getKingCoordinates(game, opponentColor);
             if (kingPos != null) {
                 Button kingButton = game.getBoard()[kingPos[0]][kingPos[1]];
-                VisualEffect.flashRed(kingButton);
+                Effects.flashRed(kingButton);
+                Effects.SoundEffect.playError();
             }
         }
 
         if (Rules.isCheckmate(game, opponentColor)) {
+            Rules.counter = 0;
             Result.showWinner(movedPiece.color, game);
         } else if (Rules.isDraw(game, opponentColor)) {
+            Rules.counter = 0;
             Result.showDraw(game);
         }
     }
