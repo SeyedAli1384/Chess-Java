@@ -50,16 +50,31 @@ class Mover implements EventHandler<ActionEvent> {
                 Effects.flashRed(targetButton);
                 Effects.SoundEffect.playError();
             } else {
-                Piece targetPiece = game.getPieces()[targetRow][targetCol];
+                // Capture info BEFORE move
+                Piece targetPieceBefore = game.getPieces()[targetRow][targetCol];
+                String moverColor = piece.color;
+
+                boolean isCastle = (piece instanceof King) && Math.abs(targetCol - srcCol) == 2;
+                boolean isPromotion = (piece instanceof Pawn) && (targetRow == 0 || targetRow == 7);
+
                 movePiece(piece, targetButton, targetRow, targetCol, srcRow, srcCol);
-                if(targetPiece != null){
+
+                // Promotion result
+                Piece pieceAfter = game.getPieces()[targetRow][targetCol];
+
+                if (targetPieceBefore != null) {
                     Effects.SoundEffect.playCapture();
                 }
                 else{
                     Effects.SoundEffect.playMove();
                 }
-                checkStatus(piece);
-                System.out.println(getMoveNotation(piece, targetRow, targetCol));
+
+                // Record notation to right panel
+                String notation = formatMoveNotation(piece, pieceAfter, srcRow, srcCol, targetRow, targetCol, targetPieceBefore, isCastle, isPromotion);
+                game.recordMove(moverColor, notation);
+
+                // Status checks
+                checkStatus(pieceAfter != null ? pieceAfter : piece);
             }
         } else {
             Effects.flashRed(targetButton);
@@ -176,13 +191,49 @@ class Mover implements EventHandler<ActionEvent> {
         return Integer.parseInt(button.getId().split(" ")[1]);
     }
 
-    private String getMoveNotation(Piece piece, int row, int col) {
+    private String formatMoveNotation(Piece originalPiece, Piece pieceAfter, int srcRow, int srcCol, int dstRow, int dstCol, Piece targetPieceBefore, boolean isCastle, boolean isPromotion) {
+        // Castling
+        if (isCastle) {
+            return (dstCol > srcCol) ? "O-O" : "O-O-O";
+        }
+
+        boolean isCapture = (targetPieceBefore != null);
+        String dstSquare = squareName(dstRow, dstCol);
+
+        String pieceLetter = pieceLetter(originalPiece);
+        String text;
+
+        if (originalPiece instanceof Pawn) {
+            if (isCapture) {
+                // For pawn capture include source file (e.g., exd5)
+                char srcFile = (char) ('a' + srcCol);
+                text = srcFile + "x" + dstSquare;
+            } else {
+                text = dstSquare;
+            }
+        } else {
+            text = pieceLetter + (isCapture ? "x" : "") + dstSquare;
+        }
+
+        // Promotion
+        if (isPromotion && pieceAfter != null && !(pieceAfter instanceof Pawn)) {
+            String promoLetter = pieceLetter(pieceAfter);
+            text = text + "=" + promoLetter;
+        }
+
+        return text;
+    }
+
+    private String squareName(int row, int col) {
         char file = (char) ('a' + col);
         int rank = 8 - row;
-        char FirstLetter = piece.getClass().getSimpleName().charAt(0);
-        if (piece.getClass().getSimpleName().equals("Knight"))
-            FirstLetter = 'N';
+        return "" + file + rank;
+    }
 
-        return FirstLetter + "" + file + rank;
+    private String pieceLetter(Piece p) {
+        String name = p.getClass().getSimpleName();
+        char initial = name.charAt(0);
+        if (name.equals("Knight")) initial = 'N';
+        return String.valueOf(initial);
     }
 }

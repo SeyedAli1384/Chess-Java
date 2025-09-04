@@ -1,9 +1,18 @@
 import javafx.application.Application;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 public class ChessBoard extends Application {
     private static final int SIZE = 8;
@@ -14,19 +23,35 @@ public class ChessBoard extends Application {
     private String currentTurn = "w";
     private GridPane grid;
 
-    // Store the stage reference to control window actions
+    // Window reference
     private Stage stage;
+
+    // A 3-column grid: [#] [W] [B]
+    private GridPane movesGrid;
+    private ScrollPane movesScroll;
+    private int moveNumber = 1;         // current row number
+    private boolean awaitingBlack = false; // if true, next move fills Black column of current row
 
     @Override
     public void start(Stage primaryStage) {
         this.stage = primaryStage;
 
+        // Left: chessboard grid
         grid = new GridPane();
         board = new Button[SIZE][SIZE];
         pieces = new Piece[SIZE][SIZE];
         initializeBoard();
 
-        Scene scene = new Scene(grid, 800, 800);
+        // Right: move panel 200x800
+        VBox rightPanel = buildMovePanel();
+
+        // Root layout
+        BorderPane root = new BorderPane();
+        root.setLeft(grid);
+        root.setRight(rightPanel);
+
+        // Scene: 1000x800 (800 board + 200 move panel)
+        Scene scene = new Scene(root, 1000, 800);
         primaryStage.setTitle("Chess");
         Image icon = new Image(getClass().getResourceAsStream("/icons/lichess-discord.png"));
         primaryStage.getIcons().add(icon);
@@ -35,18 +60,67 @@ public class ChessBoard extends Application {
         primaryStage.show();
     }
 
+    private VBox buildMovePanel() {
+        // Header row: empty cell for number, then W and B
+        movesGrid = new GridPane();
+        movesGrid.setHgap(10);
+        movesGrid.setVgap(6);
+        movesGrid.setPadding(new Insets(10));
+
+        ColumnConstraints numCol = new ColumnConstraints();
+        numCol.setPercentWidth(20); // number column
+        ColumnConstraints wCol = new ColumnConstraints();
+        wCol.setPercentWidth(40);
+        ColumnConstraints bCol = new ColumnConstraints();
+        bCol.setPercentWidth(40);
+        movesGrid.getColumnConstraints().addAll(numCol, wCol, bCol);
+
+        Label numHeader = new Label("#");
+        Label wHeader = new Label("W");
+        Label bHeader = new Label("B");
+        numHeader.setStyle("-fx-font-weight: bold;");
+        wHeader.setStyle("-fx-font-weight: bold;");
+        bHeader.setStyle("-fx-font-weight: bold;");
+
+        movesGrid.add(numHeader, 0, 0);
+        movesGrid.add(wHeader, 1, 0);
+        movesGrid.add(bHeader, 2, 0);
+
+        GridPane.setHalignment(numHeader, HPos.CENTER);
+        GridPane.setHalignment(wHeader, HPos.CENTER);
+        GridPane.setHalignment(bHeader, HPos.CENTER);
+
+        // Prepare first row number
+        addOrEnsureRowLabel(moveNumber);
+
+        movesScroll = new ScrollPane(movesGrid);
+        movesScroll.setFitToWidth(true);
+        movesScroll.setPrefViewportWidth(200);
+        movesScroll.setPrefViewportHeight(800);
+        movesScroll.setStyle("-fx-border-color: black; -fx-border-width: 2;");
+
+        VBox rightPanel = new VBox(movesScroll);
+        rightPanel.setPrefSize(200, 800);
+        rightPanel.setAlignment(Pos.TOP_CENTER);
+        rightPanel.setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-border-insets: 1;");
+        return rightPanel;
+    }
+
     private void initializeBoard() {
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 Button button = new Button();
                 button.setMinSize(100, 100);
+                button.setMaxSize(100, 100);
                 button.setStyle((row + col) % 2 == 0
                         ? "-fx-background-color: " + ThemeManager.get00Theme() + ";"
                         : "-fx-background-color: " + ThemeManager.get01Theme() + ";");
                 button.setId(row + " " + col);
-                button.setOnAction(new Mover(this));  // Your existing move handler
+                button.setOnAction(new Mover(this));  // move handler
                 board[row][col] = button;
                 grid.add(button, col, row);
+                GridPane.setHgrow(button, Priority.NEVER);
+                GridPane.setVgrow(button, Priority.NEVER);
             }
         }
         PieceState();
@@ -122,7 +196,52 @@ public class ChessBoard extends Application {
         }
     }
 
+     // Record a move
+    public void recordMove(String moverColor, String notation) {
+        // Ensure current row number is shown
+        addOrEnsureRowLabel(moveNumber);
+
+        if (moverColor.equals("w")) {
+            // White moves fill column 1 (W)
+            Label w = new Label(notation);
+            movesGrid.add(w, 1, moveNumber);
+            awaitingBlack = true;
+        } else {
+            // Black moves fill column 2 (B)
+            Label b = new Label(notation);
+            movesGrid.add(b, 2, moveNumber);
+            // Row complete: advance to next
+            moveNumber++;
+            awaitingBlack = false;
+            addOrEnsureRowLabel(moveNumber);
+        }
+
+        // Auto-scroll to the bottom
+        movesScroll.layout();
+        movesScroll.setVvalue(1.0);
+    }
+
+    private void addOrEnsureRowLabel(int number) {
+        // If the label for this row number isn't present yet, add it.
+        // Row 0 is headers; rows start at 1
+        if (number < 1) return;
+
+        // quick existence check by scanning children
+        boolean exists = movesGrid.getChildren().stream().anyMatch(node ->
+                GridPane.getRowIndex(node) != null &&
+                        GridPane.getColumnIndex(node) != null &&
+                        GridPane.getRowIndex(node) == number &&
+                        GridPane.getColumnIndex(node) == 0
+        );
+        if (!exists) {
+            Label num = new Label(String.valueOf(number));
+            movesGrid.add(num, 0, number);
+            GridPane.setHalignment(num, HPos.CENTER);
+        }
+    }
+
     // Getters and setters
+
     public Button[][] getBoard() {
         return board;
     }
