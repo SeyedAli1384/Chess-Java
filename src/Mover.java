@@ -45,6 +45,20 @@ class Mover implements EventHandler<ActionEvent> {
         int srcCol = game.getSelectedCol();
         Piece piece = pieces[srcRow][srcCol];
 
+        // If clicked the same square that is already selected: do nothing (keep selection)
+        if (targetRow == srcRow && targetCol == srcCol) {
+            return;
+        }
+
+        // If clicked on a friendly piece while another piece is selected → switch selection to that piece
+        Piece clickedPiece = pieces[targetRow][targetCol];
+        if (clickedPiece != null && clickedPiece.color.equals(game.getCurrentTurn())) {
+            resetPreviousSelection();
+            game.setSelectedButton(targetButton, targetRow, targetCol);
+            targetButton.setStyle("-fx-background-color: " + HIGHLIGHT_COLOR + ";");
+            return;
+        }
+
         if (piece != null && piece.isValidMove(srcRow, srcCol, targetRow, targetCol, pieces)) {
             if (!Rules.isValidMove(game, srcRow, srcCol, targetRow, targetCol)) {
                 Effects.flashRed(targetButton);
