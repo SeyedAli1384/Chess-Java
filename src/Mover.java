@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -179,11 +180,21 @@ class Mover implements EventHandler<ActionEvent> {
 
         if (Rules.isCheckmate(game, opponentColor)) {
             Rules.counter = 0;
+            game.stopTimer();
             Result.showWinner(movedPiece.color, game);
         } else if (Rules.isDraw(game, opponentColor)) {
             Rules.counter = 0;
+            game.stopTimer();
             Result.showDraw(game);
         }
+    }
+
+    public static void WinOnTime(ChessBoard game, String winner) {
+        Rules.counter = 0;
+        game.stopTimer();
+        Platform.runLater(() -> {
+            Result.showWinner(winner, game);
+        });
     }
 
     private void resetPreviousSelection() {

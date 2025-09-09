@@ -12,6 +12,7 @@ public class GameMode extends Application {
 
     // default
     private double selectedSecond = 10;
+    public double Bonus = 0;
     private String selectedMode = "Classic";
 
     @Override
@@ -59,14 +60,14 @@ public class GameMode extends Application {
 
         // Assign actions
         ((Button) classicButtons.getChildren().get(0)).setOnAction(e -> selectMode((Button) classicButtons.getChildren().get(0), allButtons, "Classic",600));
-        ((Button) classicButtons.getChildren().get(1)).setOnAction(e -> selectMode((Button) classicButtons.getChildren().get(1), allButtons,"Classic" ,900));
+        ((Button) classicButtons.getChildren().get(1)).setOnAction(e -> selectMode((Button) classicButtons.getChildren().get(1), allButtons,"Classic" ,900 , 600));
         ((Button) classicButtons.getChildren().get(2)).setOnAction(e -> selectMode((Button) classicButtons.getChildren().get(2), allButtons, "Classic",1800));
         ((Button) blitzButtons.getChildren().get(0)).setOnAction(e -> selectMode((Button) blitzButtons.getChildren().get(0), allButtons, "Blitz",180));
-        ((Button) blitzButtons.getChildren().get(1)).setOnAction(e -> selectMode((Button) blitzButtons.getChildren().get(1), allButtons, "Blitz",180));
+        ((Button) blitzButtons.getChildren().get(1)).setOnAction(e -> selectMode((Button) blitzButtons.getChildren().get(1), allButtons, "Blitz",180 , 120));
         ((Button) blitzButtons.getChildren().get(2)).setOnAction(e -> selectMode((Button) blitzButtons.getChildren().get(2), allButtons, "Blitz",300));
         ((Button) bulletButtons.getChildren().get(0)).setOnAction(e -> selectMode((Button) bulletButtons.getChildren().get(0), allButtons, "Bullet",60));
-        ((Button) bulletButtons.getChildren().get(1)).setOnAction(e -> selectMode((Button) bulletButtons.getChildren().get(1), allButtons, "Bullet",60));
-        ((Button) bulletButtons.getChildren().get(2)).setOnAction(e -> selectMode((Button) bulletButtons.getChildren().get(2), allButtons, "Bullet",120));
+        ((Button) bulletButtons.getChildren().get(1)).setOnAction(e -> selectMode((Button) bulletButtons.getChildren().get(1), allButtons, "Bullet",60 , 60));
+        ((Button) bulletButtons.getChildren().get(2)).setOnAction(e -> selectMode((Button) bulletButtons.getChildren().get(2), allButtons, "Bullet",120 , 60));
 
         // Layout each section (Label + Buttons in a VBox)
         VBox classicBox = new VBox(5, classicLabel, classicButtons);
@@ -85,7 +86,7 @@ public class GameMode extends Application {
 
         startButton.setOnAction(e -> {
             stage.close();
-            new ChessBoard(selectedMode, selectedSecond).start(new Stage());
+            new ChessBoard(selectedMode, selectedSecond , Bonus).start(new Stage());
         });
 
         closeButton.setOnAction(e -> {
@@ -107,11 +108,17 @@ public class GameMode extends Application {
     }
 
     private void selectMode(Button selected, Button[] all, String mode,double second) {
+        double bonus = 0;
+        selectMode(selected, all, mode, second , bonus);
+    }
+
+    private void selectMode(Button selected, Button[] all, String mode,double second , double bonus) {
         for (Button b : all) {
             b.setStyle(""); // reset others
         }
         selected.setStyle("-fx-background-color: lightgray;");
         selectedSecond = second;
         selectedMode = mode;
+        Bonus = bonus;
     }
 }

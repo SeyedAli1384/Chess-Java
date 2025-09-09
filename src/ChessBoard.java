@@ -18,6 +18,7 @@ public class ChessBoard extends Application {
     private Button[][] board;
     private Piece[][] pieces;
     private double GamemodeT;
+    private double Bonus;
     private String Gamemode;
     private Button selectedButton = null;
     private int selectedRow = -1, selectedCol = -1;
@@ -40,9 +41,10 @@ public class ChessBoard extends Application {
     private int blackSeconds;
     private Timeline timer;
 
-    public ChessBoard(String mode , double timer) {
+    public ChessBoard(String mode , double timer , double bonus) {
         Gamemode = mode;
         GamemodeT = timer;
+        Bonus = 2 * bonus;
     }
 
     @Override
@@ -176,11 +178,21 @@ public class ChessBoard extends Application {
         timer.play();
     }
 
+    public void stopTimer() {
+        timer.stop();
+    }
+
     private void updateTimers() {
         if (currentTurn.equals("w")) {
             whiteSeconds--;
+            if (whiteSeconds <= 0) {
+                Mover.WinOnTime(this, "b");
+            }
         } else {
             blackSeconds--;
+            if (blackSeconds <= 0) {
+                Mover.WinOnTime(this, "w");
+            }
         }
         whiteTimerLabel.setText("White: "+formatTime(whiteSeconds));
         blackTimerLabel.setText("Black: "+formatTime(blackSeconds));
@@ -247,7 +259,7 @@ public class ChessBoard extends Application {
     public void resetBoard() {
         stage.close();
         try {
-            new ChessBoard(Gamemode , GamemodeT).start(new Stage());
+            new ChessBoard(Gamemode , GamemodeT , Bonus).start(new Stage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -345,6 +357,15 @@ public class ChessBoard extends Application {
     }
 
     public void switchTurn() {
+        if (Bonus > 0) {
+            if (currentTurn.equals("w")) {
+                Bonus -= 5;
+                whiteSeconds += 5;
+            } else if (currentTurn.equals("b")) {
+                Bonus -= 5;
+                blackSeconds += 5;
+            }
+        }
         currentTurn = currentTurn.equals("w") ? "b" : "w";
     }
 }
