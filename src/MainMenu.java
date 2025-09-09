@@ -46,7 +46,7 @@ public class MainMenu extends Application {
 
         startBtn.setOnAction(e -> {
             try {
-                new ChessBoard().start(new Stage());
+                new GameMode().start(new Stage());
                 primaryStage.close();
             } catch (Exception ex) {
                 ex.printStackTrace();

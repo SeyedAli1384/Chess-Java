@@ -1,3 +1,5 @@
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -7,17 +9,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class ChessBoard extends Application {
     private static final int SIZE = 8;
     private Button[][] board;
     private Piece[][] pieces;
+    private double GamemodeT;
+    private String Gamemode;
     private Button selectedButton = null;
     private int selectedRow = -1, selectedCol = -1;
     private String currentTurn = "w";
@@ -32,33 +33,77 @@ public class ChessBoard extends Application {
     private int moveNumber = 1;         // current row number
     private boolean awaitingBlack = false; // if true, next move fills Black column of current row
 
+    // Timer labels
+    private Label whiteTimerLabel;
+    private Label blackTimerLabel;
+    private int whiteSeconds;
+    private int blackSeconds;
+    private Timeline timer;
+
+    public ChessBoard(String mode , double timer) {
+        Gamemode = mode;
+        GamemodeT = timer;
+    }
+
     @Override
     public void start(Stage primaryStage) {
         this.stage = primaryStage;
 
         // Left: chessboard grid
         grid = new GridPane();
+        grid.setStyle("-fx-border-color: black; -fx-border-width: 2;");
         board = new Button[SIZE][SIZE];
         pieces = new Piece[SIZE][SIZE];
         initializeBoard();
 
-        // Right: move panel 200x800
+        // Top: timer + game mode panel
+        HBox topPanel = buildTopPanel();
+
+        // Right: move panel 200x900
         VBox rightPanel = buildMovePanel();
+
+        // Left side (top panel + board stacked vertically)
+        VBox leftSide = new VBox(topPanel, grid);
+        leftSide.setPrefSize(800, 900);
 
         // Root layout
         BorderPane root = new BorderPane();
-        root.setLeft(grid);
+        root.setLeft(leftSide);
         root.setRight(rightPanel);
 
-        // Scene: 1000x800 (800 board + 200 move panel)
-        Scene scene = new Scene(root, 1000, 800);
+        // Scene: 1000x900
+        Scene scene = new Scene(root, 1000, 900);
         primaryStage.setTitle("Chess");
         Image icon = new Image(getClass().getResourceAsStream("/icons/lichess-discord.png"));
         primaryStage.getIcons().add(icon);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
+
+        startTimer();
     }
+
+    private HBox buildTopPanel() {
+        whiteTimerLabel = new Label("White Timer");
+        blackTimerLabel = new Label("Black Timer");
+        Label modeLabel = new Label("Game Mode: " + Gamemode);
+
+        whiteTimerLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        blackTimerLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        modeLabel.setStyle("-fx-font-size: 18px;");
+
+        HBox topPanel = new HBox(50, modeLabel, whiteTimerLabel, blackTimerLabel);
+        topPanel.setAlignment(Pos.CENTER);
+        topPanel.setPrefSize(800, 100);
+        topPanel.setStyle("-fx-border-color: black; -fx-border-width: 2;");
+
+        // initialize timers (Gamemode is in seconds)
+        whiteSeconds = (int) GamemodeT;
+        blackSeconds = (int) GamemodeT;
+
+        return topPanel;
+    }
+
 
     private VBox buildMovePanel() {
         // Header row: empty cell for number, then W and B
@@ -96,13 +141,12 @@ public class ChessBoard extends Application {
         movesScroll = new ScrollPane(movesGrid);
         movesScroll.setFitToWidth(true);
         movesScroll.setPrefViewportWidth(200);
-        movesScroll.setPrefViewportHeight(800);
-        movesScroll.setStyle("-fx-border-color: black; -fx-border-width: 2;");
+        movesScroll.setPrefViewportHeight(900);
 
         VBox rightPanel = new VBox(movesScroll);
-        rightPanel.setPrefSize(200, 800);
+        rightPanel.setPrefSize(200, 900);
         rightPanel.setAlignment(Pos.TOP_CENTER);
-        rightPanel.setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-border-insets: 1;");
+        rightPanel.setStyle("-fx-border-color: black; -fx-border-width: 2;");
         return rightPanel;
     }
 
@@ -124,6 +168,28 @@ public class ChessBoard extends Application {
             }
         }
         PieceState();
+    }
+
+    private void startTimer() {
+        timer = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateTimers()));
+        timer.setCycleCount(Timeline.INDEFINITE);
+        timer.play();
+    }
+
+    private void updateTimers() {
+        if (currentTurn.equals("w")) {
+            whiteSeconds--;
+        } else {
+            blackSeconds--;
+        }
+        whiteTimerLabel.setText("White: "+formatTime(whiteSeconds));
+        blackTimerLabel.setText("Black: "+formatTime(blackSeconds));
+    }
+
+    private String formatTime(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     private void PieceState() {
@@ -181,7 +247,7 @@ public class ChessBoard extends Application {
     public void resetBoard() {
         stage.close();
         try {
-            new ChessBoard().start(new Stage());
+            new ChessBoard(Gamemode , GamemodeT).start(new Stage());
         } catch (Exception e) {
             e.printStackTrace();
         }
