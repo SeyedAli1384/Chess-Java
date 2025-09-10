@@ -13,6 +13,9 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 public class ChessBoard extends Application {
     private static final int SIZE = 8;
     private Button[][] board;
@@ -20,6 +23,7 @@ public class ChessBoard extends Application {
     private double GamemodeT;
     private double Bonus;
     private String Gamemode;
+    private String TimerMode;
     private Button selectedButton = null;
     private int selectedRow = -1, selectedCol = -1;
     private String currentTurn = "w";
@@ -41,8 +45,9 @@ public class ChessBoard extends Application {
     private int blackSeconds;
     private Timeline timer;
 
-    public ChessBoard(String mode , double timer , double bonus) {
+    public ChessBoard(String mode , String TimerT, double timer , double bonus) {
         Gamemode = mode;
+        TimerMode = TimerT;
         GamemodeT = timer;
         Bonus = 2 * bonus;
     }
@@ -88,7 +93,7 @@ public class ChessBoard extends Application {
     private HBox buildTopPanel() {
         whiteTimerLabel = new Label("White Timer");
         blackTimerLabel = new Label("Black Timer");
-        Label modeLabel = new Label("Game Mode: " + Gamemode);
+        Label modeLabel = new Label("Game Mode: " + Gamemode+"-"+TimerMode);
 
         whiteTimerLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
         blackTimerLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
@@ -212,54 +217,108 @@ public class ChessBoard extends Application {
             board[1][col].setGraphic(pieces[1][col].getIcon());
             board[6][col].setGraphic(pieces[6][col].getIcon());
         }
+        if (Gamemode.equals("standard")) {
+            // Rooks
+            pieces[0][0] = new Rook("b");
+            pieces[0][7] = new Rook("b");
+            pieces[7][0] = new Rook("w");
+            pieces[7][7] = new Rook("w");
+            board[0][0].setGraphic(pieces[0][0].getIcon());
+            board[0][7].setGraphic(pieces[0][7].getIcon());
+            board[7][0].setGraphic(pieces[7][0].getIcon());
+            board[7][7].setGraphic(pieces[7][7].getIcon());
 
-        // Rooks
-        pieces[0][0] = new Rook("b");
-        pieces[0][7] = new Rook("b");
-        pieces[7][0] = new Rook("w");
-        pieces[7][7] = new Rook("w");
-        board[0][0].setGraphic(pieces[0][0].getIcon());
-        board[0][7].setGraphic(pieces[0][7].getIcon());
-        board[7][0].setGraphic(pieces[7][0].getIcon());
-        board[7][7].setGraphic(pieces[7][7].getIcon());
+            // Knights
+            pieces[0][1] = new Knight("b");
+            pieces[0][6] = new Knight("b");
+            pieces[7][1] = new Knight("w");
+            pieces[7][6] = new Knight("w");
+            board[0][1].setGraphic(pieces[0][1].getIcon());
+            board[0][6].setGraphic(pieces[0][6].getIcon());
+            board[7][1].setGraphic(pieces[7][1].getIcon());
+            board[7][6].setGraphic(pieces[7][6].getIcon());
 
-        // Knights
-        pieces[0][1] = new Knight("b");
-        pieces[0][6] = new Knight("b");
-        pieces[7][1] = new Knight("w");
-        pieces[7][6] = new Knight("w");
-        board[0][1].setGraphic(pieces[0][1].getIcon());
-        board[0][6].setGraphic(pieces[0][6].getIcon());
-        board[7][1].setGraphic(pieces[7][1].getIcon());
-        board[7][6].setGraphic(pieces[7][6].getIcon());
+            // Bishops
+            pieces[0][2] = new Bishop("b");
+            pieces[0][5] = new Bishop("b");
+            pieces[7][2] = new Bishop("w");
+            pieces[7][5] = new Bishop("w");
+            board[0][2].setGraphic(pieces[0][2].getIcon());
+            board[0][5].setGraphic(pieces[0][5].getIcon());
+            board[7][2].setGraphic(pieces[7][2].getIcon());
+            board[7][5].setGraphic(pieces[7][5].getIcon());
 
-        // Bishops
-        pieces[0][2] = new Bishop("b");
-        pieces[0][5] = new Bishop("b");
-        pieces[7][2] = new Bishop("w");
-        pieces[7][5] = new Bishop("w");
-        board[0][2].setGraphic(pieces[0][2].getIcon());
-        board[0][5].setGraphic(pieces[0][5].getIcon());
-        board[7][2].setGraphic(pieces[7][2].getIcon());
-        board[7][5].setGraphic(pieces[7][5].getIcon());
+            // Queens
+            pieces[0][3] = new Queen("b");
+            pieces[7][3] = new Queen("w");
+            board[0][3].setGraphic(pieces[0][3].getIcon());
+            board[7][3].setGraphic(pieces[7][3].getIcon());
 
-        // Queens
-        pieces[0][3] = new Queen("b");
-        pieces[7][3] = new Queen("w");
-        board[0][3].setGraphic(pieces[0][3].getIcon());
-        board[7][3].setGraphic(pieces[7][3].getIcon());
+            // Kings
+            pieces[0][4] = new King("b");
+            pieces[7][4] = new King("w");
+            board[0][4].setGraphic(pieces[0][4].getIcon());
+            board[7][4].setGraphic(pieces[7][4].getIcon());
+        }
+        else if (Gamemode.equals("chess960")) {
+            ArrayList<Integer> numbers = new ArrayList<>();
+            for (int i = 0; i < 8; i++) {
+                numbers.add(i);
+            }
+            do {
+                Collections.shuffle(numbers);
+                } while ((numbers.get(4) % 2) == (numbers.get(5) % 2) // Bishop same color and King not between two Rook
+                    || ( (numbers.get(0) < numbers.get(7) && numbers.get(1) < numbers.get(7))
+                    || (numbers.get(0) > numbers.get(7) && numbers.get(1) > numbers.get(7)) ));
 
-        // Kings
-        pieces[0][4] = new King("b");
-        pieces[7][4] = new King("w");
-        board[0][4].setGraphic(pieces[0][4].getIcon());
-        board[7][4].setGraphic(pieces[7][4].getIcon());
+            // Rooks
+            pieces[0][numbers.get(0)] = new Rook("b");
+            pieces[0][numbers.get(1)] = new Rook("b");
+            pieces[7][numbers.get(0)] = new Rook("w");
+            pieces[7][numbers.get(1)] = new Rook("w");
+            board[0][numbers.get(0)].setGraphic(pieces[0][numbers.get(0)].getIcon());
+            board[0][numbers.get(1)].setGraphic(pieces[0][numbers.get(1)].getIcon());
+            board[7][numbers.get(0)].setGraphic(pieces[7][numbers.get(0)].getIcon());
+            board[7][numbers.get(1)].setGraphic(pieces[7][numbers.get(1)].getIcon());
+
+            // Knights
+            pieces[0][numbers.get(2)] = new Knight("b");
+            pieces[0][numbers.get(3)] = new Knight("b");
+            pieces[7][numbers.get(2)] = new Knight("w");
+            pieces[7][numbers.get(3)] = new Knight("w");
+            board[0][numbers.get(2)].setGraphic(pieces[0][numbers.get(2)].getIcon());
+            board[0][numbers.get(3)].setGraphic(pieces[0][numbers.get(3)].getIcon());
+            board[7][numbers.get(2)].setGraphic(pieces[7][numbers.get(2)].getIcon());
+            board[7][numbers.get(3)].setGraphic(pieces[7][numbers.get(3)].getIcon());
+
+            // Bishops
+            pieces[0][numbers.get(4)] = new Bishop("b");
+            pieces[0][numbers.get(5)] = new Bishop("b");
+            pieces[7][numbers.get(4)] = new Bishop("w");
+            pieces[7][numbers.get(5)] = new Bishop("w");
+            board[0][numbers.get(4)].setGraphic(pieces[0][numbers.get(4)].getIcon());
+            board[0][numbers.get(5)].setGraphic(pieces[0][numbers.get(5)].getIcon());
+            board[7][numbers.get(4)].setGraphic(pieces[7][numbers.get(4)].getIcon());
+            board[7][numbers.get(5)].setGraphic(pieces[7][numbers.get(5)].getIcon());
+
+            // Queens
+            pieces[0][numbers.get(6)] = new Queen("b");
+            pieces[7][numbers.get(6)] = new Queen("w");
+            board[0][numbers.get(6)].setGraphic(pieces[0][numbers.get(6)].getIcon());
+            board[7][numbers.get(6)].setGraphic(pieces[7][numbers.get(6)].getIcon());
+
+            // Kings
+            pieces[0][numbers.get(7)] = new King("b");
+            pieces[7][numbers.get(7)] = new King("w");
+            board[0][numbers.get(7)].setGraphic(pieces[0][numbers.get(7)].getIcon());
+            board[7][numbers.get(7)].setGraphic(pieces[7][numbers.get(7)].getIcon());
+        }
     }
 
     public void resetBoard() {
         stage.close();
         try {
-            new ChessBoard(Gamemode , GamemodeT , Bonus).start(new Stage());
+            new ChessBoard(Gamemode, TimerMode, GamemodeT, Bonus).start(new Stage());
         } catch (Exception e) {
             e.printStackTrace();
         }
