@@ -94,7 +94,7 @@ public class GameMode extends Application {
         b2.setOnAction(e -> selectMode(b2, TButtons, "Bullet", 60, 60));
         b3.setOnAction(e -> selectMode(b3, TButtons, "Bullet", 120, 60));
 
-        // Start button at bottom-left of right section
+        // Start button
         Button startBtn = new Button("Start");
         startBtn.setStyle(buttonStyle);
 
@@ -124,7 +124,20 @@ public class GameMode extends Application {
         leftBox.setStyle("-fx-border-color: black; -fx-border-width: 5 0 5 5;");
         rightPane.setStyle("-fx-border-color: black; -fx-border-width: 5 5 5 5;");
 
-        Scene scene = new Scene(mainContent, 650, 420);
+        // --- Background setup ---
+        BackgroundImage bgImage = new BackgroundImage(
+                new Image(getClass().getResourceAsStream("/icons/background.jpg")),
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(650, 420, false, false, false, false)
+        );
+
+        StackPane root = new StackPane();
+        root.setBackground(new Background(bgImage));
+        root.getChildren().add(mainContent);
+
+        Scene scene = new Scene(root, 650, 420);
         stage.setTitle("Game Mode");
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/Flag.png")));
         stage.setScene(scene);

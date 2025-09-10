@@ -3,7 +3,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -67,7 +67,20 @@ public class Result {
         layout.getChildren().addAll(victoryMessage, winnerImage, rematchButton, menuButton, exitButton);
         layout.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(layout, 300, 400);
+        // --- Background setup ---
+        BackgroundImage bgImage = new BackgroundImage(
+                new Image(Result.class.getResourceAsStream("/icons/background.jpg")),
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(300, 400, false, false, false, false)
+        );
+
+        StackPane root = new StackPane();
+        root.setBackground(new Background(bgImage));
+        root.getChildren().add(layout);
+
+        Scene scene = new Scene(root, 300, 400);
         window.setScene(scene);
         window.showAndWait();
     }
@@ -118,7 +131,20 @@ public class Result {
         layout.getChildren().addAll(drawMessage, rematchButton, menuButton, exitButton);
         layout.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(layout, 300, 300);
+        // --- Background setup ---
+        BackgroundImage bgImage = new BackgroundImage(
+                new Image(Result.class.getResourceAsStream("/icons/background.jpg")),
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(300, 300, false, false, false, false)
+        );
+
+        StackPane root = new StackPane();
+        root.setBackground(new Background(bgImage));
+        root.getChildren().add(layout);
+
+        Scene scene = new Scene(root, 300, 300);
         window.setScene(scene);
         window.showAndWait();
     }
