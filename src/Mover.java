@@ -51,7 +51,7 @@ class Mover implements EventHandler<ActionEvent> {
             return;
         }
 
-        // If clicked on a friendly piece while another piece is selected → switch selection to that piece
+        // If clicked on a friendly piece switch selection to that piece
         Piece clickedPiece = pieces[targetRow][targetCol];
         if (clickedPiece != null && clickedPiece.color.equals(game.getCurrentTurn())) {
             resetPreviousSelection();
@@ -101,14 +101,40 @@ class Mover implements EventHandler<ActionEvent> {
 
     private void movePiece(Piece piece, Button targetButton, int toRow, int toCol, int fromRow, int fromCol) {
 
+        Piece[][] pieces = game.getPieces();
+        Button[][] board = game.getBoard();
+
         Piece targetPiece = game.getPieces()[toRow][toCol]; // check if capture happens
 
-        // If capture or pawn move → reset counter
+        // If capture or pawn move reset counter
         if (targetPiece != null || piece instanceof Pawn) {
             Rules.counter = 0;
         } else {
             Rules.counter++;
         }
+
+        // Enpassant
+        if (piece instanceof Pawn) {
+            // Normal en passant capture (diagonal into empty square)
+            if (Math.abs(toCol - fromCol) == 1 && toRow != fromRow && pieces[toRow][toCol] == null) {
+                int capturedRow = fromRow;
+                int capturedCol = toCol;
+                pieces[capturedRow][capturedCol] = null;
+                board[capturedRow][capturedCol].setGraphic(null);
+            }
+
+            // Check if pawn moved 2 squares forward mark en passant square
+            if (Math.abs(toRow - fromRow) == 2) {
+                game.setEnpassantTarget((fromRow + toRow) / 2 , fromCol);
+            } else {
+                game.setEnpassantTarget(-1,-1);
+                game.setEnpassantTarget(-1,-1);
+            }
+        } else {
+            game.setEnpassantTarget(-1,-1);
+            game.setEnpassantTarget(-1,-1);
+        }
+
 
         // Handle castling
         if (piece instanceof King && Math.abs(toCol - fromCol) == 2) {

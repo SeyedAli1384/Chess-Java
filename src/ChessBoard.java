@@ -46,6 +46,9 @@ public class ChessBoard extends Application {
     private int blackSeconds;
     private Timeline timer;
 
+    private static int enPassantRow = -1;
+    private static int enPassantCol = -1;
+
     public ChessBoard(String mode, String TimerT, double timer, double bonus, Boolean rotate) {
         Gamemode = mode;
         TimerMode = TimerT;
@@ -112,7 +115,6 @@ public class ChessBoard extends Application {
 
         return topPanel;
     }
-
 
     private VBox buildMovePanel() {
         // Header row: empty cell for number, then W and B
@@ -269,7 +271,7 @@ public class ChessBoard extends Application {
             }
             do {
                 Collections.shuffle(numbers);
-                } while ((numbers.get(4) % 2) == (numbers.get(5) % 2) // Bishop same color and King not between two Rook
+            } while ((numbers.get(4) % 2) == (numbers.get(5) % 2) // Bishop same color and King not between two Rook
                     || ( (numbers.get(0) < numbers.get(7) && numbers.get(1) < numbers.get(7))
                     || (numbers.get(0) > numbers.get(7) && numbers.get(1) > numbers.get(7)) ));
 
@@ -335,37 +337,29 @@ public class ChessBoard extends Application {
         }
     }
 
-     // Record a move
+    // Record a move
     public void recordMove(String moverColor, String notation) {
-        // Ensure current row number is shown
         addOrEnsureRowLabel(moveNumber);
 
         if (moverColor.equals("w")) {
-            // White moves fill column 1 (W)
             Label w = new Label(notation);
             movesGrid.add(w, 1, moveNumber);
             awaitingBlack = true;
         } else {
-            // Black moves fill column 2 (B)
             Label b = new Label(notation);
             movesGrid.add(b, 2, moveNumber);
-            // Row complete: advance to next
             moveNumber++;
             awaitingBlack = false;
             addOrEnsureRowLabel(moveNumber);
         }
 
-        // Auto-scroll to the bottom
         movesScroll.layout();
         movesScroll.setVvalue(1.0);
     }
 
     private void addOrEnsureRowLabel(int number) {
-        // If the label for this row number isn't present yet, add it.
-        // Row 0 is headers; rows start at 1
         if (number < 1) return;
 
-        // quick existence check by scanning children
         boolean exists = movesGrid.getChildren().stream().anyMatch(node ->
                 GridPane.getRowIndex(node) != null &&
                         GridPane.getColumnIndex(node) != null &&
@@ -380,30 +374,34 @@ public class ChessBoard extends Application {
     }
 
     // Getters and setters
-
-    public Button[][] getBoard() {
-        return board;
+    public int[] getEnPassantTarget() {
+        if (enPassantRow >= 0 && enPassantCol >= 0) {
+            return new int[]{enPassantRow, enPassantCol};
+        }
+        return null;
     }
-
-    public Piece[][] getPieces() {
-        return pieces;
+    public static boolean getEnPassant() {
+        if (enPassantRow >= 0 && enPassantCol >= 0) {
+            return true;
+        }
+        return false;
     }
-
-    public Button getSelectedButton() {
-        return selectedButton;
+    public static int getEnpassantrow() {
+        return enPassantRow;
     }
-
-    public int getSelectedRow() {
-        return selectedRow;
+    public static int getEnpassantcol() {
+        return enPassantCol;
     }
-
-    public int getSelectedCol() {
-        return selectedCol;
+    public void setEnpassantTarget(int enPassantRow, int enPassantCol) {
+        this.enPassantRow = enPassantRow;
+        this.enPassantCol = enPassantCol;
     }
-
-    public String getCurrentTurn() {
-        return currentTurn;
-    }
+    public Button[][] getBoard() { return board; }
+    public Piece[][] getPieces() { return pieces; }
+    public Button getSelectedButton() { return selectedButton; }
+    public int getSelectedRow() { return selectedRow; }
+    public int getSelectedCol() { return selectedCol; }
+    public String getCurrentTurn() { return currentTurn; }
 
     public void setSelectedButton(Button button, int row, int col) {
         selectedButton = button;
@@ -419,8 +417,6 @@ public class ChessBoard extends Application {
 
     public void Rotation() {
         Piece[][] newPieces = new Piece[SIZE][SIZE];
-
-        // Rotate logical pieces
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 if (pieces[row][col] != null) {
@@ -432,10 +428,9 @@ public class ChessBoard extends Application {
         }
         pieces = newPieces;
 
-        // Rotate visuals on buttons
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
-                board[row][col].setGraphic(null); // clear
+                board[row][col].setGraphic(null);
                 if (pieces[row][col] != null) {
                     board[row][col].setGraphic(pieces[row][col].getIcon());
                 }
@@ -456,6 +451,7 @@ public class ChessBoard extends Application {
         if (Rotate){
             Rotation();
         }
+        
         currentTurn = currentTurn.equals("w") ? "b" : "w";
     }
 }

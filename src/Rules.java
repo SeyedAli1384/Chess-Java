@@ -43,7 +43,6 @@ public class Rules {
         PiecePosition king = findKing(game, kingColor);
         if (king == null) return false;
 
-        // 1. Can king escape?
         for (int dr = -1; dr <= 1; dr++) {
             for (int dc = -1; dc <= 1; dc++) {
                 if (dr == 0 && dc == 0) continue;
@@ -53,7 +52,6 @@ public class Rules {
             }
         }
 
-        // 2. Can anyone defend or cover?
         for (PiecePosition teammate : getPiecesByColor(game, kingColor)) {
             for (int r = 0; r < 8; r++) {
                 for (int c = 0; c < 8; c++) {
@@ -66,7 +64,6 @@ public class Rules {
         return true;
     }
 
-    // DRAW Checkers
     public static boolean isDraw(ChessBoard game, String color) {
         return isStalemate(game, color) || isInsufficientMaterial(game.getPieces()) || FiftyRules();
     }
@@ -89,13 +86,10 @@ public class Rules {
 
     public static boolean isInsufficientMaterial(Piece[][] board) {
         List<Piece> pieces = new ArrayList<>();
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
+        for (int r = 0; r < 8; r++)
+            for (int c = 0; c < 8; c++)
                 if (board[r][c] != null) pieces.add(board[r][c]);
-            }
-        }
 
-        // Only 2ta kings
         if (pieces.size() == 2) return true;
 
         // King + Bishop or King + Knight or King + 2ta Knight
@@ -132,28 +126,37 @@ public class Rules {
         return counter >= 100; // 50 full moves = 100 moves for each side
     }
 
-    // Is the Move Valid or not
     public static boolean isValidMove(ChessBoard game, int fromRow, int fromCol, int toRow, int toCol) {
         if (fromRow == toRow && fromCol == toCol) return false;
 
         Piece[][] board = game.getPieces();
         Piece piece = board[fromRow][fromCol];
-        if (piece == null || !piece.isValidMove(fromRow, fromCol, toRow, toCol, board))
+        if (piece == null) return false;
+
+        int[] enPassantTarget = game.getEnPassantTarget();
+        if (piece instanceof Pawn && enPassantTarget != null
+                && toRow == enPassantTarget[0] && toCol == enPassantTarget[1]) {
+            if (Math.abs(toCol - fromCol) == 1 && ((piece.color.equals("w") && toRow == fromRow - 1) || (piece.color.equals("b") && toRow == fromRow + 1))) {
+                return true;
+            }
+        }
+
+        if (!piece.isValidMove(fromRow, fromCol, toRow, toCol, board))
             return false;
 
-        // Castling
         if (piece instanceof King && Math.abs(toCol - fromCol) == 2 && fromRow == toRow)
             return canCastle(game, (King) piece, fromRow, fromCol, toRow, toCol);
 
-        // Simulate move
         Piece[][] copy = copyBoard(board);
+        if (piece instanceof Pawn && enPassantTarget != null && toRow == enPassantTarget[0] && toCol == enPassantTarget[1]) {
+            copy[fromRow][toCol] = null; // remove captured pawn
+        }
         copy[toRow][toCol] = copy[fromRow][fromCol];
         copy[fromRow][fromCol] = null;
 
         return !isKingInCheckSimulated(copy, piece.color);
     }
 
-    // Castle Move
     private static boolean canCastle(ChessBoard game, King king, int row, int fromCol, int toRow, int toCol) {
         if (king.hasMoved()) return false;
 
@@ -165,15 +168,11 @@ public class Rules {
         if (!(rook instanceof Rook) || ((Rook) rook).hasMoved() || !rook.color.equals(king.color))
             return false;
 
-        // Path must be clear
-        for (int c = Math.min(fromCol, rookCol) + 1; c < Math.max(fromCol, rookCol); c++) {
+        for (int c = Math.min(fromCol, rookCol) + 1; c < Math.max(fromCol, rookCol); c++)
             if (board[row][c] != null) return false;
-        }
 
-        // King cannot pass through check
-        for (int c = fromCol; c != toCol + (isKingside ? 1 : -1); c += (isKingside ? 1 : -1)) {
+        for (int c = fromCol; c != toCol + (isKingside ? 1 : -1); c += (isKingside ? 1 : -1))
             if (isSquareUnderAttack(game, row, c, king.color)) return false;
-        }
 
         return true;
     }
@@ -186,7 +185,6 @@ public class Rules {
         return false;
     }
 
-    // others
     private static List<PiecePosition> getPiecesByColor(ChessBoard game, String color) {
         List<PiecePosition> list = new ArrayList<>();
         Piece[][] board = game.getPieces();
@@ -216,13 +214,13 @@ public class Rules {
     private static boolean isKingInCheckSimulated(Piece[][] board, String kingColor) {
         int kingRow = -1, kingCol = -1;
         for (int r = 0; r < 8; r++)
-            for (int c = 0; c < 8; c++)
+            for (int c = 0; c < 8; c++) {
                 if (board[r][c] instanceof King && board[r][c].color.equals(kingColor)) {
                     kingRow = r;
                     kingCol = c;
                     break;
                 }
-
+            }
         if (kingRow == -1) return false;
 
         for (int r = 0; r < 8; r++)

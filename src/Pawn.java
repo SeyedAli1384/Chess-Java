@@ -4,39 +4,44 @@ class Pawn extends Piece {
     }
 
     @Override
-    public boolean isValidMove(int startRow, int startCol, int endRow, int endCol, Piece[][] pieces) {
+    public boolean isValidMove(int fromRow, int fromCol, int toRow, int toCol, Piece[][] board) {
         int direction;
-        int startRowInitial;
+        int startRow;
 
         if (Piece.Rotate) {
             direction = -1;
-            startRowInitial = 6;
+            startRow = 6;
         } else {
             direction = (this.color.equals("w")) ? -1 : 1;
-            startRowInitial = (this.color.equals("w")) ? 6 : 1;
+            startRow = (this.color.equals("w")) ? 6 : 1;
         }
 
-        if (startCol == endCol &&
-                endRow == startRow + direction &&
-                pieces[endRow][endCol] == null) {
+        // Normal 1-step forward
+        if (toCol == fromCol && toRow == fromRow + direction && board[toRow][toCol] == null) {
             return true;
         }
 
-        if (startCol == endCol &&
-                startRow == startRowInitial &&
-                endRow == startRow + 2 * direction &&
-                pieces[endRow][endCol] == null &&
-                pieces[startRow + direction][endCol] == null) {
+        // Double step from starting row
+        if (toCol == fromCol && fromRow == startRow && toRow == fromRow + 2 * direction
+                && board[fromRow + direction][fromCol] == null && board[toRow][toCol] == null) {
             return true;
         }
 
-        if (Math.abs(startCol - endCol) == 1 &&
-                endRow == startRow + direction &&
-                pieces[endRow][endCol] != null &&
-                !pieces[endRow][endCol].color.equals(this.color)) {
+        // Normal diagonal capture
+        if (Math.abs(toCol - fromCol) == 1 && toRow == fromRow + direction
+                && board[toRow][toCol] != null && !board[toRow][toCol].color.equals(color)) {
             return true;
         }
 
+        // En Passant Capture
+        if (Math.abs(toCol - fromCol) == 1 && toRow == fromRow + direction && board[toRow][toCol] == null) {
+            // There must be an enemy pawn adjacent at fromRow and toCol
+            Piece adjacent = board[fromRow][toCol];
+            if (adjacent instanceof Pawn && !adjacent.color.equals(this.color)) {
+                if (ChessBoard.getEnPassant() && ChessBoard.getEnpassantrow()==toRow && ChessBoard.getEnpassantcol()==toCol)
+                    return true;
+            }
+        }
         return false;
     }
 }
