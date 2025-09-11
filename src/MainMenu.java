@@ -47,6 +47,7 @@ public class MainMenu extends Application {
         startBtn.setOnAction(e -> {
             try {
                 new GameMode().start(new Stage());
+                Mover.setBaseColor();
                 primaryStage.close();
             } catch (Exception ex) {
                 ex.printStackTrace();

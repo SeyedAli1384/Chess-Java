@@ -7,8 +7,8 @@ class Mover implements EventHandler<ActionEvent> {
     private final ChessBoard game;
 
     private static final String HIGHLIGHT_COLOR = "#66cc88";
-    private static final String WHITE_COLOR = ThemeManager.get00Theme();
-    private static final String GRAY_COLOR = ThemeManager.get01Theme();
+    private static String WHITE_COLOR = ThemeManager.get00Theme();
+    private static String GRAY_COLOR = ThemeManager.get01Theme();
 
     public Mover(ChessBoard game) {
         this.game = game;
@@ -232,6 +232,10 @@ class Mover implements EventHandler<ActionEvent> {
         String baseColor = (row + col) % 2 == 0 ? WHITE_COLOR : GRAY_COLOR;
         previous.setStyle("-fx-background-color: " + baseColor + ";");
         game.clearSelection();
+    }
+    public static void setBaseColor(){
+        GRAY_COLOR = ThemeManager.get01Theme();
+        WHITE_COLOR = ThemeManager.get00Theme();
     }
 
     private int getRow(Button button) {
