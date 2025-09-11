@@ -24,6 +24,7 @@ public class ChessBoard extends Application {
     private double Bonus;
     private String Gamemode;
     private String TimerMode;
+    public Boolean Rotate;
     private Button selectedButton = null;
     private int selectedRow = -1, selectedCol = -1;
     private String currentTurn = "w";
@@ -45,11 +46,12 @@ public class ChessBoard extends Application {
     private int blackSeconds;
     private Timeline timer;
 
-    public ChessBoard(String mode , String TimerT, double timer , double bonus) {
+    public ChessBoard(String mode, String TimerT, double timer, double bonus, Boolean rotate) {
         Gamemode = mode;
         TimerMode = TimerT;
         GamemodeT = timer;
         Bonus = 2 * bonus;
+        Rotate = rotate;
     }
 
     @Override
@@ -318,7 +320,7 @@ public class ChessBoard extends Application {
     public void resetBoard() {
         stage.close();
         try {
-            new ChessBoard(Gamemode, TimerMode, GamemodeT, Bonus).start(new Stage());
+            new ChessBoard(Gamemode, TimerMode, GamemodeT, Bonus, Rotate).start(new Stage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -415,6 +417,32 @@ public class ChessBoard extends Application {
         selectedCol = -1;
     }
 
+    public void Rotation() {
+        Piece[][] newPieces = new Piece[SIZE][SIZE];
+
+        // Rotate logical pieces
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                if (pieces[row][col] != null) {
+                    int newRow = SIZE - 1 - row;
+                    int newCol = SIZE - 1 - col;
+                    newPieces[newRow][newCol] = pieces[row][col];
+                }
+            }
+        }
+        pieces = newPieces;
+
+        // Rotate visuals on buttons
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                board[row][col].setGraphic(null); // clear
+                if (pieces[row][col] != null) {
+                    board[row][col].setGraphic(pieces[row][col].getIcon());
+                }
+            }
+        }
+    }
+
     public void switchTurn() {
         if (Bonus > 0) {
             if (currentTurn.equals("w")) {
@@ -424,6 +452,9 @@ public class ChessBoard extends Application {
                 Bonus -= 5;
                 blackSeconds += 5;
             }
+        }
+        if (Rotate){
+            Rotation();
         }
         currentTurn = currentTurn.equals("w") ? "b" : "w";
     }

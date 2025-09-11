@@ -14,9 +14,11 @@ import java.util.List;
 public class GameMode extends Application {
 
     private double selectedSecond = 600; // default 10 min
-    public double Bonus = 0;
+    private double Bonus = 0;
     private String ModeType = "Rapid";
     private String ModeName = "standard";
+    private Boolean Rotate = false;
+
     String buttonStyle = "-fx-font-size: 14px; -fx-background-color: #ffffff; -fx-border-color: black; -fx-border-radius: 20;-fx-text-fill: black; -fx-background-radius: 20;";
 
     @Override
@@ -33,7 +35,21 @@ public class GameMode extends Application {
         standardBtn.setMinWidth(120);
         chess960Btn.setMinWidth(120);
 
-        VBox leftBox = new VBox(30, leftTitle, standardBtn, chess960Btn);
+        // Rotate label + buttons
+        Label rotateLabel = new Label("Rotate:");
+        rotateLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        Button rotateOffBtn = new Button("off");
+        rotateOffBtn.setStyle(buttonStyle);
+        Button rotateOnBtn = new Button("on");
+        rotateOnBtn.setStyle(buttonStyle);
+
+        rotateOffBtn.setMinWidth(60);
+        rotateOnBtn.setMinWidth(60);
+
+        HBox rotateRow = new HBox(10, rotateOffBtn, rotateOnBtn);
+        rotateRow.setAlignment(Pos.CENTER);
+
+        VBox leftBox = new VBox(30, leftTitle, standardBtn, chess960Btn, rotateLabel, rotateRow);
         leftBox.setAlignment(Pos.TOP_CENTER);
         leftBox.setPadding(new Insets(30));
 
@@ -79,10 +95,15 @@ public class GameMode extends Application {
         TButtons.addAll(List.of(b1, b2, b3, bl1, bl2, bl3, r1, r2, r3));
         List<Button> MButtons = new ArrayList<>();
         MButtons.addAll(List.of(standardBtn, chess960Btn));
+        List<Button> RButtons = new ArrayList<>();
+        RButtons.addAll(List.of(rotateOffBtn, rotateOnBtn));
 
         // Assign actions
         standardBtn.setOnAction(e -> selectMode(standardBtn, MButtons, "standard"));
         chess960Btn.setOnAction(e -> selectMode(chess960Btn, MButtons, "chess960"));
+
+        rotateOffBtn.setOnAction(e -> selectMode(rotateOffBtn, RButtons, false));
+        rotateOnBtn.setOnAction(e -> selectMode(rotateOnBtn, RButtons, true));
 
         r1.setOnAction(e -> selectMode(r1, TButtons, "Rapid", 600));
         r2.setOnAction(e -> selectMode(r2, TButtons, "Rapid", 900, 600));
@@ -104,8 +125,10 @@ public class GameMode extends Application {
         startBtn.setMinWidth(80);
         startBtn.setOnAction(e -> {
             stage.close();
-            new ChessBoard(ModeName, ModeType, selectedSecond, Bonus).start(new Stage());
+            new ChessBoard(ModeName, ModeType, selectedSecond, Bonus , Rotate).start(new Stage());
+            Piece.Rotate = Rotate;
         });
+
         BorderPane rightPane = new BorderPane();
         VBox timeBox = new VBox(20, bulletLabel, bulletRow, blitzLabel, blitzRow, rapidLabel, rapidRow);
         timeBox.setPadding(new Insets(20));
@@ -113,7 +136,7 @@ public class GameMode extends Application {
 
         rightPane.setCenter(timeBox);
         rightPane.setBottom(startBtn);
-        BorderPane.setAlignment(startBtn, Pos.BOTTOM_LEFT);
+        BorderPane.setAlignment(startBtn, Pos.BOTTOM_RIGHT); // moved to right side
         BorderPane.setMargin(startBtn, new Insets(10));
 
         // Layout: split left & right with borders
@@ -177,5 +200,13 @@ public class GameMode extends Application {
         }
         selected.setStyle("-fx-font-size: 14px; -fx-background-color: #888; -fx-border-color: black; -fx-border-radius: 20;-fx-text-fill: black; -fx-background-radius: 20;");
         ModeName = selectedmode;
+    }
+
+    private void selectMode(Button selected, List<Button> all, Boolean rotate) {
+        for (Button b : all) {
+            b.setStyle(buttonStyle); // reset all
+        }
+        selected.setStyle("-fx-font-size: 14px; -fx-background-color: #888; -fx-border-color: black; -fx-border-radius: 20;-fx-text-fill: black; -fx-background-radius: 20;");
+        Rotate = rotate;
     }
 }
