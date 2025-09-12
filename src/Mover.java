@@ -261,8 +261,13 @@ class Mover implements EventHandler<ActionEvent> {
         if (originalPiece instanceof Pawn) {
             if (isCapture) {
                 // For pawn capture include source file (e.g., exd5)
-                char srcFile = (char) ('a' + srcCol);
-                text = srcFile + "x" + dstSquare;
+                char srcFile;
+                if (game.Rotate && game.getCurrentTurn().equals("w")){
+                    srcFile = (char) ('h' - srcCol);
+                }else {
+                    srcFile = (char) ('a' + srcCol);
+                }
+                text = srcFile + pieceLetter + "x" + dstSquare;
             } else {
                 text = dstSquare;
             }
@@ -280,9 +285,15 @@ class Mover implements EventHandler<ActionEvent> {
     }
 
     private String squareName(int row, int col) {
-        char file = (char) ('a' + col);
-        int rank = 8 - row;
-        return "" + file + rank;
+        if (game.Rotate && game.getCurrentTurn().equals("w")) {
+            char file = (char) ('h' - col);
+            int rank = 1 + row;
+            return "" + file + rank;
+        } else {
+            char file = (char) ('a' + col);
+            int rank = 8 - row;
+            return "" + file + rank;
+        }
     }
 
     private String pieceLetter(Piece p) {
