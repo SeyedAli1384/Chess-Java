@@ -138,38 +138,38 @@ class Mover implements EventHandler<ActionEvent> {
 
         // Handle castling
         if (piece instanceof King && Math.abs(toCol - fromCol) == 2) {
-            int row = fromRow;
+            int direction = (toCol - fromCol) > 0 ? 1 : -1;
+            int rookCol = -1;
 
-            if (toCol > fromCol) {
-                // Kingside castling
-                Piece rook = game.getPieces()[row][7];
-                if (rook instanceof Rook) {
-                    game.getPieces()[row][5] = rook;
-                    game.getPieces()[row][7] = null;
-
-                    Button rookFrom = game.getBoard()[row][7];
-                    Button rookTo = game.getBoard()[row][5];
-                    rookTo.setGraphic(rookFrom.getGraphic());
-                    rookFrom.setGraphic(null);
-                    ((Rook) rook).setMoved();
+            for (int c = fromCol + direction; c >= 0 && c < 8; c += direction) {
+                if (pieces[fromRow][c] instanceof Rook && pieces[fromRow][c].color.equals(piece.color)) {
+                    rookCol = c;
+                    break;
                 }
-            } else {
-                // Queenside castling
-                Piece rook = game.getPieces()[row][0];
-                if (rook instanceof Rook) {
-                    game.getPieces()[row][3] = rook;
-                    game.getPieces()[row][0] = null;
+            }
 
-                    Button rookFrom = game.getBoard()[row][0];
-                    Button rookTo = game.getBoard()[row][3];
+            if (rookCol != -1) {
+                Piece rook = pieces[fromRow][rookCol];
+                int rookTargetCol = (direction > 0) ? toCol - 1 : toCol + 1;
+
+                if (rookCol == rookTargetCol) {
+                    ((Rook) rook).setMoved();
+                } else {
+                    pieces[fromRow][rookTargetCol] = rook;
+                    pieces[fromRow][rookCol] = null;
+
+                    Button rookFrom = game.getBoard()[fromRow][rookCol];
+                    Button rookTo = game.getBoard()[fromRow][rookTargetCol];
                     rookTo.setGraphic(rookFrom.getGraphic());
                     rookFrom.setGraphic(null);
+
                     ((Rook) rook).setMoved();
                 }
             }
 
             ((King) piece).setMoved();
         }
+
 
         // Normal move
         targetButton.setGraphic(game.getSelectedButton().getGraphic());
@@ -249,7 +249,11 @@ class Mover implements EventHandler<ActionEvent> {
     private String formatMoveNotation(Piece originalPiece, Piece pieceAfter, int srcRow, int srcCol, int dstRow, int dstCol, Piece targetPieceBefore, boolean isCastle, boolean isPromotion) {
         // Castling
         if (isCastle) {
-            return (dstCol > srcCol) ? "O-O" : "O-O-O";
+            if (game.Rotate && game.getCurrentTurn().equals("w")){
+                return (dstCol < srcCol) ? "O-O" : "O-O-O";
+            }else {
+                return (dstCol > srcCol) ? "O-O" : "O-O-O";
+            }
         }
 
         boolean isCapture = (targetPieceBefore != null);

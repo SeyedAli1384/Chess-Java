@@ -26,23 +26,23 @@ public class King extends Piece {
         }
 
         // Castling conditions
-        if (!hasMoved && startRow == endRow) {
-            // Kingside castling (O-O)
-            if (endCol == startCol + 2) {
-                Piece rook = pieces[startRow][7];
-                if (rook instanceof Rook && !((Rook) rook).hasMoved()) {
-                    if (pieces[startRow][5] == null && pieces[startRow][6] == null) {
-                        return true;
-                    }
+        if (!hasMoved && startRow == endRow && Math.abs(endCol - startCol) == 2) {
+            int direction = (endCol - startCol) > 0 ? 1 : -1;
+            int rookCol = -1;
+
+            // Search for rook in the direction of castling
+            for (int c = startCol + direction; c >= 0 && c < 8; c += direction) {
+                if (pieces[startRow][c] instanceof Rook) {
+                    rookCol = c;
+                    break;
                 }
+                if (pieces[startRow][c] != null && !(pieces[startRow][c] instanceof Rook)) break; // Blocked
             }
-            // Queenside castling (O-O-O)
-            if (endCol == startCol - 2) {
-                Piece rook = pieces[startRow][0];
-                if (rook instanceof Rook && !((Rook) rook).hasMoved()) {
-                    if (pieces[startRow][1] == null && pieces[startRow][2] == null && pieces[startRow][3] == null) {
-                        return true;
-                    }
+
+            if (rookCol != -1) {
+                Rook rook = (Rook) pieces[startRow][rookCol];
+                if (!rook.hasMoved()) {
+                    return true;
                 }
             }
         }

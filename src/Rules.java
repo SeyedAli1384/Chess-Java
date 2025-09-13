@@ -161,21 +161,31 @@ public class Rules {
         if (king.hasMoved()) return false;
 
         Piece[][] board = game.getPieces();
-        boolean isKingside = toCol > fromCol;
-        int rookCol = isKingside ? 7 : 0;
-        Piece rook = board[row][rookCol];
+        int direction = (toCol - fromCol) > 0 ? 1 : -1;
+        int rookCol = -1;
 
-        if (!(rook instanceof Rook) || ((Rook) rook).hasMoved() || !rook.color.equals(king.color))
-            return false;
+        // Find rook in castling direction
+        for (int c = fromCol + direction; c >= 0 && c < 8; c += direction) {
+            if (board[row][c] instanceof Rook && board[row][c].color.equals(king.color)) {
+                rookCol = c;
+                break;
+            }
+            if (board[row][c] != null && !(board[row][c] instanceof Rook)) return false; // Blocked
+        }
 
-        for (int c = Math.min(fromCol, rookCol) + 1; c < Math.max(fromCol, rookCol); c++)
-            if (board[row][c] != null) return false;
+        if (rookCol == -1) return false;
 
-        for (int c = fromCol; c != toCol + (isKingside ? 1 : -1); c += (isKingside ? 1 : -1))
+        Rook rook = (Rook) board[row][rookCol];
+        if (rook.hasMoved()) return false;
+
+        // Check if squares between king and rook are under attack
+        for (int c = Math.min(fromCol, toCol); c <= Math.max(fromCol, toCol); c++) {
             if (isSquareUnderAttack(game, row, c, king.color)) return false;
+        }
 
         return true;
     }
+
 
     private static boolean isSquareUnderAttack(ChessBoard game, int row, int col, String defenderColor) {
         for (PiecePosition enemy : getPiecesByColor(game, oppositeColor(defenderColor))) {
