@@ -109,6 +109,14 @@ public class ChessBoard extends Application {
         topPanel.setPrefSize(800, 100);
         topPanel.setStyle("-fx-border-color: black; -fx-border-width: 2;");
 
+        BackgroundImage bgImage = new BackgroundImage(
+                new Image(getClass().getResource("/icons/background.jpg").toExternalForm(),
+                        800, 100, false, true),
+                BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                BackgroundSize.DEFAULT);
+        topPanel.setBackground(new Background(bgImage));
+
         // initialize timers (Gamemode is in seconds)
         whiteSeconds = (int) GamemodeT;
         blackSeconds = (int) GamemodeT;

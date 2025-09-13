@@ -19,7 +19,8 @@ public class BoardTheme extends Application {
         themeList.setPadding(new Insets(15));
         themeList.setAlignment(Pos.TOP_LEFT);
 
-        themeList.getChildren().add(createBoardThemeItem("default", "white", "gray"));
+        themeList.getChildren().add(createBoardThemeItem("Default", "white", "gray"));
+        themeList.getChildren().add(createBoardThemeItem("Wood", "#fce7dc", "#804c30"));
         themeList.getChildren().add(createBoardThemeItem("Classic", "#f0d9b5", "#b58863"));
         themeList.getChildren().add(createBoardThemeItem("Lichess", "#eed2aa", "#a67d5d"));
         themeList.getChildren().add(createBoardThemeItem("Ocean", "#b3e5fc", "#0288d1"));
